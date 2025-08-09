@@ -1,0 +1,26 @@
+# OS / system
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Build outputs (future-proofing)
+dist/
+build/
+coverage/
+
+# Environment files (never commit real secrets)
+.env
+.env.*
+!.env.example
+
+# Local secrets folder (ignored)
+secrets/*
+!secrets/.gitkeep
+
+

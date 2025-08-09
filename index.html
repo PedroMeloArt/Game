@@ -1,66 +1,104 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#7c5cff" />
-    <title>Animal Tap! — A tiny game for toddlers</title>
-    <meta name="description" content="Tap the animal you hear! A simple, colorful game for toddlers. Works on phones, tablets, and desktop." />
-    <link rel="preload" href="styles.css" as="style" />
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="preload" href="script.js" as="script" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%90%AE%3C/text%3E%3C/svg%3E" />
-  </head>
-  <body>
-    <a class="skip-link" href="#grid">Skip to game</a>
+<html lang="pt-BR">
 
-    <main id="app" class="app" aria-live="off">
-      <header class="app__header">
-        <h1 class="app__title" aria-label="Animal Tap! A tiny game for toddlers">
-          🐾 Animal Tap!
-        </h1>
-        <div class="toolbar" role="group" aria-label="Settings">
-          <button id="soundToggle" class="icon-btn" aria-pressed="true" aria-label="Sound on" title="Sound on">
-            <span aria-hidden="true">🔊</span>
-          </button>
-          <button id="calmToggle" class="icon-btn" aria-pressed="false" aria-label="Reduce motion off" title="Reduce motion off">
-            <span aria-hidden="true">🕊️</span>
-          </button>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c5cff" />
+  <title>Animal Tap! — Encontre o bichinho</title>
+  <meta name="description"
+    content="Encontre o bichinho! Um joguinho simples e colorido para bebês e crianças pequenas. Funciona no celular e no computador." />
+  <link rel="preload" href="styles.css" as="style" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preload" href="script.js" as="script" />
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%90%AE%3C/text%3E%3C/svg%3E" />
+</head>
+
+<body>
+  <a class="skip-link" href="#grid">Ir para o jogo</a>
+
+  <main id="app" class="app" aria-live="off">
+    <header class="app__header">
+      <h1 class="app__title" aria-label="Animal Tap! Um joguinho para bebês">
+        🐾 Animal Tap!
+      </h1>
+      <div class="toolbar" role="group" aria-label="Configurações">
+        <button id="soundToggle" class="icon-btn" aria-pressed="true" aria-label="Som ligado" title="Som ligado">
+          <span aria-hidden="true">🔊</span>
+        </button>
+        <button id="calmToggle" class="icon-btn" aria-pressed="false" aria-label="Reduzir movimento desligado"
+          title="Reduzir movimento desligado">
+          <span aria-hidden="true">🕊️</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="prompt" aria-live="polite" aria-atomic="true">
+      <div class="prompt__label">Encontre este bichinho</div>
+      <div class="prompt__card" aria-hidden="true">
+        <div id="promptEmoji" class="prompt__emoji" role="img" aria-label="Animal para encontrar">🐮</div>
+        <div id="promptText" class="prompt__text">Cow</div>
+      </div>
+      <div class="prompt__help">Toque no animal igual</div>
+      <div class="timer" aria-hidden="true">
+        <div id="timerBar" class="timer__bar"></div>
+      </div>
+    </section>
+
+    <section id="grid" class="grid" role="group" aria-label="Área de jogo">
+      <!-- Cards will be injected by script.js -->
+    </section>
+
+    <section class="progress" aria-label="Progresso">
+      <div id="levelTag" class="level-tag" aria-live="polite">Nível 1</div>
+      <div id="lives" class="lives" aria-live="polite" aria-label="Vidas"></div>
+      <div class="stars" id="stars" aria-hidden="true"></div>
+      <div id="srProgress" class="sr-only" aria-live="polite"></div>
+    </section>
+
+    <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="overlayTitle"
+      aria-describedby="overlayDesc">
+      <div class="overlay__card">
+        <h2 id="overlayTitle" class="overlay__title">Vamos brincar?</h2>
+        <p id="overlayDesc" class="overlay__desc"><br>Ache o animal! Você precisa encontrá-lo na tela. </p>
+        <p id="overlayDesc" class="overlay__desc"> Você tem 3 vidas e um tempinho para achar! Se errar ou o tempo
+          acabar, perde uma vida.</p>
+        <div id="summary" class="summary" style="display:none" aria-live="polite" aria-label="Resumo da partida">
+          <div class="summary__title">Animais que você encontrou</div>
+          <div id="summaryList" class="summary__list" role="list"></div>
         </div>
-      </header>
-
-      <section class="prompt" aria-live="polite" aria-atomic="true">
-        <div class="prompt__label">Find this friend</div>
-        <div class="prompt__card" aria-hidden="true">
-          <div id="promptEmoji" class="prompt__emoji" role="img" aria-label="Animal to find">🐮</div>
-          <div id="promptText" class="prompt__text">Cow</div>
-        </div>
-        <div class="prompt__help">Tap the matching animal</div>
-      </section>
-
-      <section id="grid" class="grid" role="group" aria-label="Animal choices">
-        <!-- Cards will be injected by script.js -->
-      </section>
-
-      <section class="progress" aria-label="Progress">
-        <div class="stars" id="stars" aria-hidden="true"></div>
-        <div id="srProgress" class="sr-only" aria-live="polite"></div>
-      </section>
-
-      <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="overlayTitle" aria-describedby="overlayDesc">
-        <div class="overlay__card">
-          <h2 id="overlayTitle" class="overlay__title">Ready to play?</h2>
-          <p id="overlayDesc" class="overlay__desc">Tap or click to start. We will say the animal name so little ones can follow along.</p>
-          <button id="startBtn" class="primary-btn">Play</button>
+        <div class="overlay__actions">
+          <button id="startBtn" class="primary-btn">Jogar</button>
+          <button id="retryBtn" class="ghost-btn" style="display:none">Tentar de novo</button>
+          <button id="restartBtn" class="ghost-btn" style="display:none">Recomeçar</button>
         </div>
       </div>
-    </main>
+    </div>
 
-    <div id="confetti" aria-hidden="true"></div>
-    <div id="status" class="sr-only" aria-live="polite"></div>
+    <div id="intermission" class="intermission" aria-hidden="true">
+      <div class="intermission__card">
+        <div class="spinner" aria-hidden="true"></div>
+        <div id="intermissionMsg" class="intermission__msg">Muito bem! Próximo nível…</div>
+      </div>
+    </div>
+ 
+     <section id="summaryPage" class="summary-page" style="display:none" aria-live="polite" aria-label="Resumo final">
+       <h2 id="summaryTitle" class="summary-page__title">Você conseguiu chegar ao nível 1! 🎉</h2>
+       <div class="summary-page__content">
+         <div class="summary__title">Animais que você encontrou</div>
+         <div id="summaryPageList" class="summary__list" role="list"></div>
+       </div>
+       <div class="summary-page__actions">
+         <button id="summaryRestartBtn" class="primary-btn">Recomeçar</button>
+       </div>
+     </section>
+  </main>
 
-    <script defer src="script.js"></script>
-  </body>
-  </html>
+  <div id="confetti" aria-hidden="true"></div>
+  <div id="status" class="sr-only" aria-live="polite"></div>
 
+  <script defer src="script.js"></script>
+</body>
 
+</html>

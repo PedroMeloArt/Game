@@ -109,11 +109,27 @@ body {
 .prompt__emoji {
   font-size: clamp(2.2rem, 8vw, 3.5rem);
   filter: drop-shadow(0 4px 0 rgba(0,0,0,0.08));
+  transition: transform 0.5s ease;
+  animation: gentle-pulse 2s ease-in-out infinite;
 }
 .prompt__text {
   font-size: clamp(1.4rem, 4vw, 2rem);
   font-weight: 800;
 }
+.prompt__card { position: relative; }
+.prompt__card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.9rem;
+  background: linear-gradient(45deg, var(--accent), var(--accent-2));
+  z-index: -1;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px;
+}
+@keyframes gentle-pulse { 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.05);} }
 .prompt__help { color: var(--muted); font-size: 0.95rem; }
 
 .timer {
@@ -127,9 +143,18 @@ body {
 .timer__bar {
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, #8f79ff, var(--timer-color));
+  background: linear-gradient(90deg,#4ecdc4 0%, #44a08d 25%, #ffa726 50%, #ff7043 75%, #e53935 100%);
   transform-origin: left center;
+  position: relative;
+  overflow: hidden;
 }
+.timer__bar::after {
+  content: '';
+  position: absolute; inset: 0; left: -100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s linear infinite;
+}
+@keyframes shimmer { 0%{ left:-100%; } 100%{ left:100%; } }
 
 /* Scatter playfield */
 .grid {
@@ -173,7 +198,6 @@ body {
   box-shadow: var(--shadow);
   font-size: 0.95rem;
 }
-.stars { display: inline-grid; grid-auto-flow: column; gap: 0.25rem; }
 
 .lives {
   display: inline-grid;
@@ -200,16 +224,18 @@ body {
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
 }
 .token__emoji { font-size: var(--token-font-size); }
 .token[data-correct="true"] { outline: 4px solid var(--good); }
 .token[data-incorrect="true"] { outline: 4px solid var(--bad); }
-.star {
-  width: 22px; height: 22px; border-radius: 6px;
-  background: color-mix(in oklab, var(--accent), white 20%);
-  box-shadow: var(--shadow);
-}
-.star.is-on { background: linear-gradient(180deg, #ffd56b, #ffae00); }
+.token:hover, .token:focus { transform: scale(1.08) rotate(2deg); box-shadow: 0 8px 25px rgba(124,92,255,0.3); }
+.token.wobble { animation: wobble 0.6s ease-in-out; }
+.token.bounce-in { animation: bounceIn 0.6s cubic-bezier(0.68,-0.55,0.265,1.55); }
+@keyframes wobble { 0%,100%{ transform: rotate(0);} 25%{ transform: rotate(-5deg);} 75%{ transform: rotate(5deg);} }
+@keyframes bounceIn { 0%{ transform: scale(0) rotate(180deg); opacity:0;} 50%{ transform: scale(1.2) rotate(90deg); opacity:.8;} 100%{ transform: scale(1) rotate(0); opacity:1;} }
+.hint-glow { animation: hint-pulse 1s ease-in-out 3; box-shadow: 0 0 0 0 rgba(124,92,255,0.7); }
+@keyframes hint-pulse { 0%{ box-shadow:0 0 0 0 rgba(124,92,255,0.7);} 50%{ box-shadow:0 0 0 20px rgba(124,92,255,0);} 100%{ box-shadow:0 0 0 0 rgba(124,92,255,0);} }
 
 .overlay {
   position: fixed; inset: 0; display: grid; place-items: center;
@@ -404,6 +430,19 @@ body {
 }
 
 #confetti { position: fixed; inset: 0; pointer-events: none; }
+
+/* Toasts for achievements */
+.toasts { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); display: grid; gap: 0.5rem; z-index: 2000; }
+.toast {
+  background: var(--card); color: var(--ink); padding: 0.6rem 0.9rem; border-radius: 0.8rem; box-shadow: var(--shadow);
+  display: inline-grid; grid-auto-flow: column; align-items: center; gap: 0.5rem; font-weight: 800; animation: toastIn 0.3s ease;
+}
+.toast__emoji { font-size: 1.2rem; }
+@keyframes toastIn { from{ opacity:0; transform: translateY(10px);} to{ opacity:1; transform: translateY(0);} }
+
+/* Level progress */
+.level-progress { width: 100%; height: 8px; background: var(--timer-bg); border-radius: 999px; overflow: hidden; }
+.level-progress__fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: inherit; transition: width 0.6s cubic-bezier(0.25,0.46,0.45,0.94); }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

@@ -181,7 +181,6 @@ const grid = qs('#grid');
 const promptEmoji = qs('#promptEmoji');
 const promptText = qs('#promptText');
 const timerBar = qs('#timerBar');
-const starsEl = qs('#stars');
 const overlay = qs('#overlay');
 const overlayTitle = qs('#overlayTitle');
 const overlayDesc = qs('#overlayDesc');
@@ -193,6 +192,7 @@ const calmToggle = qs('#calmToggle');
 const srProgress = qs('#srProgress');
 const levelTag = qs('#levelTag');
 const livesEl = qs('#lives');
+const levelFill = qs('#levelFill');
 
 let isSoundOn = true;
 let reduceMotion = false;
@@ -348,12 +348,13 @@ function onPick(entity, el) {
     currentTarget = null;
     stopTimer();
     el.dataset.correct = 'true';
+    addSuccessEffects(el);
     // Track correctly found animal for summary
     encounteredAnimals.push({ name: entity.name, emoji: entity.emoji });
     // Play success sound only (no animal name)
     playSoundSequence(sounds.correct);
     level += 1;
-    updateStars(level);
+    updateLevelDisplay(level);
     // Pause ~2s before next level to give a short break
     clearTimeout(pendingNextLevelTimeout);
     const intermission = document.getElementById('intermission');
@@ -362,11 +363,15 @@ function onPick(entity, el) {
       intermissionMsg.textContent = 'Muito bem! Próximo nível…';
       intermission.style.display = 'grid';
     }
+    const timeTakenMs = timerDurationMs - (parseFloat(getComputedStyle(timerBar).transform.split(',')[0]) || 0);
+    checkAchievements({ timeMs: Math.max(0, timeTakenMs) });
     pendingNextLevelTimeout = setTimeout(startLevel, 2000);
   } else {
     if (el) {
       el.dataset.incorrect = 'true';
       setTimeout(() => { delete el.dataset.incorrect; }, 400);
+      el.classList.add('wobble');
+      setTimeout(() => el.classList.remove('wobble'), 600);
     }
     playSoundSequence(sounds.wrong);
     // Do not repeat the animal name on wrong selection
@@ -374,16 +379,11 @@ function onPick(entity, el) {
   }
 }
 
-function updateStars(currentLevel) {
+function updateLevelDisplay(currentLevel) {
   const cycle = celebrateEveryLevels;
-  starsEl.innerHTML = '';
-  for (let i = 0; i < cycle; i += 1) {
-    const s = document.createElement('div');
-    s.className = 'star' + (i < (currentLevel % cycle) ? ' is-on' : '');
-    starsEl.appendChild(s);
-  }
   srProgress.textContent = `Progresso: nível ${currentLevel}`;
   if (levelTag) levelTag.textContent = `Nível ${currentLevel}`;
+  if (levelFill) levelFill.style.width = `${((currentLevel % cycle) / cycle) * 100}%`;
 }
 
 function getLevelScale(currentLevel) {
@@ -484,6 +484,7 @@ function drawScatter(tokens) {
   shuffle(cells);
   tokens.forEach((t, idx) => {
     const el = createToken(t);
+    el.classList.add('bounce-in');
     const cellIdx = idx < cells.length ? idx : Math.floor(Math.random() * cells.length);
     const sel = cells[cellIdx] || { r: Math.floor(Math.random() * rows), c: Math.floor(Math.random() * cols) };
     const jitterX = (Math.random() - 0.5) * margin;
@@ -516,7 +517,7 @@ function startLevel() {
   const tokens = buildLevelTokens(available, target, totalTokens, objectDistractors);
   setPrompt(target);
   applyLevelScale(getLevelScale(level));
-  updateStars(level);
+  updateLevelDisplay(level);
   levelActive = true;
   currentTokens = tokens;
   drawScatter(tokens);
@@ -529,6 +530,58 @@ function startLevel() {
 function celebrate() {
   playSoundSequence(sounds.star);
   fireConfetti();
+}
+
+function createEmojiRain(emojis, count = 10) {
+  const container = document.getElementById('confetti');
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i += 1) {
+    const el = document.createElement('div');
+    el.textContent = emojis[i % emojis.length];
+    el.style.position = 'absolute';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-40px';
+    el.style.fontSize = '24px';
+    el.style.opacity = '0.9';
+    el.animate([
+      { transform: 'translateY(0)' },
+      { transform: 'translateY(100vh)' }
+    ], { duration: 2000 + Math.random() * 1500, easing: 'ease-in', fill: 'forwards' });
+    frag.appendChild(el);
+  }
+  container.appendChild(frag);
+}
+
+function addSuccessEffects(element) {
+  createParticleBurst(element);
+  createEmojiRain(['🎉','⭐','💫','🌟'], 12);
+}
+
+function createParticleBurst(element) {
+  const rect = element.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  for (let i = 0; i < 12; i += 1) {
+    const particle = document.createElement('div');
+    particle.style.position = 'fixed';
+    particle.style.left = centerX + 'px';
+    particle.style.top = centerY + 'px';
+    particle.style.width = '8px';
+    particle.style.height = '8px';
+    particle.style.background = `hsl(${Math.random()*60+120} 70% 60%)`;
+    particle.style.borderRadius = '50%';
+    particle.style.pointerEvents = 'none';
+    const angle = (i / 12) * Math.PI * 2;
+    const velocity = 100 + Math.random() * 60;
+    const vx = Math.cos(angle) * velocity;
+    const vy = Math.sin(angle) * velocity;
+    particle.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: `translate(${vx}px, ${vy}px) scale(0)`, opacity: 0 }
+    ], { duration: 800, easing: 'cubic-bezier(0.25,0.46,0.45,0.94)' })
+    .onfinish = () => particle.remove();
+    document.body.appendChild(particle);
+  }
 }
 
 function fireConfetti() {
@@ -560,16 +613,6 @@ function fireConfetti() {
   container.appendChild(frag);
 }
 
-function initStars() {
-  const cycle = celebrateEveryLevels;
-  starsEl.innerHTML = '';
-  for (let i = 0; i < cycle; i += 1) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    starsEl.appendChild(s);
-  }
-}
-
 function initLives() {
   updateLivesUI();
 }
@@ -583,6 +626,38 @@ function updateLivesUI() {
     livesEl.appendChild(dot);
   }
   livesEl.setAttribute('aria-label', `Vidas: ${lives}`);
+}
+
+// Toasts / Achievements
+const toastsEl = document.getElementById('toasts');
+function showToast({ emoji, text }) {
+  if (!toastsEl) return;
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<div class="toast__emoji">${emoji}</div><div>${text}</div>`;
+  toastsEl.appendChild(t);
+  setTimeout(() => { t.remove(); }, 2500);
+}
+
+const achievements = {
+  first_find: { name: 'Primeiro achado!', emoji: '🎯', unlocked: false },
+  speed_demon: { name: 'Rápido demais!', emoji: '⚡', unlocked: false },
+  animal_lover: { name: 'Amigo dos bichinhos!', emoji: '💝', unlocked: false }
+};
+
+function checkAchievements({ timeMs }) {
+  if (!achievements.first_find.unlocked && encounteredAnimals.length >= 1) {
+    achievements.first_find.unlocked = true;
+    showToast({ emoji: achievements.first_find.emoji, text: achievements.first_find.name });
+  }
+  if (!achievements.speed_demon.unlocked && timeMs < 3000) {
+    achievements.speed_demon.unlocked = true;
+    showToast({ emoji: achievements.speed_demon.emoji, text: achievements.speed_demon.name });
+  }
+  if (!achievements.animal_lover.unlocked && encounteredAnimals.length >= 10) {
+    achievements.animal_lover.unlocked = true;
+    showToast({ emoji: achievements.animal_lover.emoji, text: achievements.animal_lover.name });
+  }
 }
 
 function loseLife(reason) {
@@ -715,8 +790,7 @@ startBtn.addEventListener('click', () => {
     level = 1;
     lives = maxLives;
     encounteredAnimals.length = 0;
-    initStars();
-    updateStars(level);
+    updateLevelDisplay(level);
     initLives();
     startLevel();
   } else if (overlayMode === 'lost') {
@@ -729,8 +803,7 @@ startBtn.addEventListener('click', () => {
     level = 1;
     lives = maxLives;
     encounteredAnimals.length = 0;
-    initStars();
-    updateStars(level);
+    updateLevelDisplay(level);
     initLives();
     startLevel();
   }
@@ -769,8 +842,7 @@ calmToggle.addEventListener('click', () => {
 });
 
 // Set up base UI on load
-initStars();
-updateStars(level);
+updateLevelDisplay(level);
 initLives();
 overlayMode = 'start';
 // Warm up best voice selection (voices may load asynchronously on some browsers)
@@ -790,8 +862,7 @@ if (summaryRestartBtn) {
     level = 1;
     lives = maxLives;
     encounteredAnimals.length = 0;
-    initStars();
-    updateStars(level);
+    updateLevelDisplay(level);
     initLives();
     startLevel();
   });

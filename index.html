@@ -53,8 +53,8 @@
     <section class="progress" aria-label="Progresso">
       <div id="levelTag" class="level-tag" aria-live="polite">Nível 1</div>
       <div id="lives" class="lives" aria-live="polite" aria-label="Vidas"></div>
-      <div class="stars" id="stars" aria-hidden="true"></div>
       <div id="srProgress" class="sr-only" aria-live="polite"></div>
+      <div class="level-progress" aria-hidden="true"><div id="levelFill" class="level-progress__fill"></div></div>
     </section>
 
     <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="overlayTitle"
@@ -103,6 +103,7 @@
   </main>
 
   <div id="confetti" aria-hidden="true"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="status" class="sr-only" aria-live="polite"></div>
 
   <script defer src="script.js"></script>

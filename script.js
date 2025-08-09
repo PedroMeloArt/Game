@@ -65,19 +65,16 @@ const natureObjects = [
 
 const sounds = {
   correct: [
-    () => beep(660, 0.08),
-    () => beep(880, 0.12)
+    () => playChord([523.25, 659.25, 783.99], 0.15, 'sine', 0.12), // C major chord (C5-E5-G5)
+    () => setTimeout(() => playNote(1046.50, 0.2, 'triangle', 0.08), 50) // C6 bell
   ],
   wrong: [
-    () => beep(330, 0.10),
-    () => beep(180, 0.16),
-    () => beep(110, 0.24),
-    () => beep(70, 0.18)
+    () => playNote(220, 0.3, 'sawtooth', 0.06, true), // A3 with fade
+    () => setTimeout(() => playNote(185, 0.4, 'sawtooth', 0.04, true), 150), // F#3 with fade
   ],
   star: [
-    () => beep(880, 0.06),
-    () => beep(1040, 0.06),
-    () => beep(1320, 0.1)
+    () => playArpeggio([523.25, 659.25, 783.99, 1046.50, 1318.51], 80, 'triangle', 0.1), // C major arpeggio
+    () => setTimeout(() => playChord([1046.50, 1318.51, 1567.98], 0.4, 'sine', 0.15), 400) // High C major
   ]
 };
 
@@ -103,6 +100,80 @@ function beep(frequency, durationSec) {
   oscillator.start();
   const endTime = ac.currentTime + durationSec;
   oscillator.stop(endTime);
+}
+
+function playNote(frequency, duration, waveform = 'sine', volume = 0.1, fadeOut = false) {
+  const ac = getAudio();
+  if (!ac) return;
+  
+  const oscillator = ac.createOscillator();
+  const gainNode = ac.createGain();
+  
+  oscillator.type = waveform;
+  oscillator.frequency.value = frequency;
+  
+  // Envelope for smoother sound
+  gainNode.gain.setValueAtTime(0, ac.currentTime);
+  gainNode.gain.linearRampToValueAtTime(volume, ac.currentTime + 0.01); // Quick attack
+  
+  if (fadeOut) {
+    gainNode.gain.linearRampToValueAtTime(volume * 0.7, ac.currentTime + duration * 0.3);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+  } else {
+    gainNode.gain.setValueAtTime(volume, ac.currentTime + duration - 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, ac.currentTime + duration);
+  }
+  
+  oscillator.connect(gainNode).connect(ac.destination);
+  oscillator.start(ac.currentTime);
+  oscillator.stop(ac.currentTime + duration);
+}
+
+function playChord(frequencies, duration, waveform = 'sine', volume = 0.08) {
+  const ac = getAudio();
+  if (!ac) return;
+  
+  frequencies.forEach(freq => {
+    const oscillator = ac.createOscillator();
+    const gainNode = ac.createGain();
+    
+    oscillator.type = waveform;
+    oscillator.frequency.value = freq;
+    
+    // Envelope
+    gainNode.gain.setValueAtTime(0, ac.currentTime);
+    gainNode.gain.linearRampToValueAtTime(volume / frequencies.length, ac.currentTime + 0.02);
+    gainNode.gain.setValueAtTime(volume / frequencies.length, ac.currentTime + duration - 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, ac.currentTime + duration);
+    
+    oscillator.connect(gainNode).connect(ac.destination);
+    oscillator.start(ac.currentTime);
+    oscillator.stop(ac.currentTime + duration);
+  });
+}
+
+function playArpeggio(frequencies, noteInterval, waveform = 'triangle', volume = 0.1) {
+  const ac = getAudio();
+  if (!ac) return;
+  
+  frequencies.forEach((freq, index) => {
+    setTimeout(() => {
+      const oscillator = ac.createOscillator();
+      const gainNode = ac.createGain();
+      
+      oscillator.type = waveform;
+      oscillator.frequency.value = freq;
+      
+      const duration = 0.3;
+      gainNode.gain.setValueAtTime(0, ac.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume, ac.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+      
+      oscillator.connect(gainNode).connect(ac.destination);
+      oscillator.start(ac.currentTime);
+      oscillator.stop(ac.currentTime + duration);
+    }, index * noteInterval);
+  });
 }
 
 const qs = (sel) => document.querySelector(sel);

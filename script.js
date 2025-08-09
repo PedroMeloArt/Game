@@ -277,6 +277,8 @@ function onPick(entity, el) {
     currentTarget = null;
     stopTimer();
     el.dataset.correct = 'true';
+    // Track correctly found animal for summary
+    encounteredAnimals.push({ name: entity.name, emoji: entity.emoji });
     // Play success sound only (no animal name)
     playSoundSequence(sounds.correct);
     level += 1;
@@ -441,8 +443,6 @@ function startLevel() {
   }
   lastTargetName = target.name;
   const tokens = buildLevelTokens(available, target, totalTokens, objectDistractors);
-  // track encountered target for summary
-  encounteredAnimals.push({ name: target.name, emoji: target.emoji });
   setPrompt(target);
   applyLevelScale(getLevelScale(level));
   updateStars(level);
@@ -589,6 +589,15 @@ function buildSummaryList(listId) {
   list.innerHTML = '';
   const unique = new Map();
   encounteredAnimals.forEach(a => { if (!unique.has(a.name)) unique.set(a.name, a); });
+  
+  if (unique.size === 0) {
+    const noAnimals = document.createElement('div');
+    noAnimals.className = 'summary__no-animals';
+    noAnimals.textContent = 'Nenhum animal foi encontrado ainda!';
+    list.appendChild(noAnimals);
+    return;
+  }
+  
   unique.forEach(({ name, emoji }) => {
     const item = document.createElement('div');
     item.className = 'summary__item';

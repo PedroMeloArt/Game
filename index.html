@@ -84,13 +84,20 @@
     </div>
  
      <section id="summaryPage" class="summary-page" style="display:none" aria-live="polite" aria-label="Resumo final">
-       <h2 id="summaryTitle" class="summary-page__title">Você conseguiu chegar ao nível 1! 🎉</h2>
        <div class="summary-page__content">
-         <div class="summary__title">Animais que você encontrou</div>
-         <div id="summaryPageList" class="summary__list" role="list"></div>
-       </div>
-       <div class="summary-page__actions">
-         <button id="summaryRestartBtn" class="primary-btn">Recomeçar</button>
+         <div class="summary-card">
+           <div class="summary-card__header">
+             <div class="summary-card__trophy">🏆</div>
+             <h2 id="summaryTitle" class="summary-card__title">Você conseguiu chegar ao nível 1!</h2>
+             <div class="summary-card__subtitle">Parabéns! Você encontrou todos estes bichinhos:</div>
+           </div>
+           <div class="summary-card__animals">
+             <div id="summaryPageList" class="summary-animals" role="list"></div>
+           </div>
+           <div class="summary-card__actions">
+             <button id="summaryRestartBtn" class="play-again-btn">🎮 Jogar Novamente</button>
+           </div>
+         </div>
        </div>
      </section>
   </main>
